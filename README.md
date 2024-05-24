@@ -7,4 +7,4 @@
 - 安装相同版本的`Chrome`和`ChromeDriver`
 - 配置环境变量，或者在脚本中指定`ChromeDriver`路径。
 - 安装Python依赖库：`pip install -r requirements.txt`
-- 运行爬虫脚本：`python scraper.py`
+- 运行爬虫脚本：`python main.py`
