@@ -2,3 +2,4 @@ numpy==1.19.5
 onnxruntime==1.10.0
 Pillow==10.3.0
 selenium==3.141.0
+ddddocr
