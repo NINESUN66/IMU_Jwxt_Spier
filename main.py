@@ -9,9 +9,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-
 LOGIN_URL = "https://jwxt.imu.edu.cn/login"
 GRADES_URL = "https://jwxt.imu.edu.cn/student/integratedQuery/scoreQuery/allPassingScores/index?mobile=false"
+GRADE_PATH = "Grades.txt"
 MAX_REFRESH_TIMES = 10
 
 
@@ -58,7 +58,6 @@ def input_captcha(attempts):
 
 
 def get_scores(refresh_times, username, password):
-
     if refresh_times > MAX_REFRESH_TIMES:
         with open("Grades.txt", "a", encoding='utf-8') as file:
             file.write("您可能没有成绩，或者教务系统崩溃，请进入教务系统确认\n")
@@ -67,10 +66,7 @@ def get_scores(refresh_times, username, password):
 
     try:
         driver.get(GRADES_URL)
-        os.remove("Grades.txt")
-        with open("Grades.txt", "a", encoding='utf-8') as file:
-            file.write("课程名，课程属性，学分，成绩，绩点成绩\n")
-        time.sleep(2)
+        time.sleep(1)
         tabs = driver.find_elements_by_css_selector('[id^="tab"]')
         currentPageUrl = driver.current_url
         print(currentPageUrl)
@@ -103,25 +99,36 @@ def get_scores(refresh_times, username, password):
                         line = f"{course_name} {course_attribute} {credits} {grades} {grade_points}\n"
                         with open("Grades.txt", "a", encoding='utf-8') as file:
                             file.write(line)
+        driver.delete_all_cookies()
 
     except Exception as e:
         print(f"获取成绩出现错误，错误码: {e}")
 
 
+def delete_old_grade():
+    if os.path.exists(GRADE_PATH):
+        os.remove(GRADE_PATH)
+
+
 def click_login_button():
     time.sleep(0.5)
-    # 等待登录按钮可点击
+
     login_button = WebDriverWait(driver, 10).until(
         EC.element_to_be_clickable((By.ID, "loginButton"))
     )
     login_button.click()
+    return not ('errorCode=badCredentials' in driver.current_url)
 
 
 def total(username, password):
+    delete_old_grade()
     input_username_password(username, password)
     input_captcha(0)
-    click_login_button()
-    get_scores(0,username, password)
+    if not click_login_button():
+        with open("Grades.txt", "a", encoding='utf-8') as file:
+            file.write("账号或密码错误\n")
+        return
+    get_scores(0, username, password)
 
 
 driver = webdriver.Chrome()
